@@ -6,7 +6,6 @@ import pandas as pd
 import xarray as xr
 from tqdm import tqdm
 
-
 def download_and_process_currents(out_dir: Path):
     out_dir.mkdir(exist_ok=True)
     raw_dir = out_dir / "raw"
@@ -65,11 +64,13 @@ def download_and_process_currents(out_dir: Path):
                     )
                 ds = ds.drop_vars(("i", "j", "timestep", "time_bnds"))
                 ds.to_netcdf(unmasked_path)
-                raw_out_path.unlink()
+                # FIXME
+                # raw_out_path.unlink()
 
         if none_failed:
             print("All files downloaded.")
-            raw_dir.rmdir()
+            # FIXME
+            # raw_dir.rmdir()
             break
 
     # now we need to compute a land mask.  It isn't included (odd),
@@ -91,6 +92,9 @@ def download_and_process_currents(out_dir: Path):
         ds = xr.open_dataset(file)
         ds = ds.where(~land)
         ds.to_netcdf(out_dir / file.name)
-        file.unlink()
-
-    unmasked_dir.unlink()
+        # FIXME
+        # file.unlink()
+    
+    print("Completed")
+    # FIXME
+    # unmasked_dir.unlink()
