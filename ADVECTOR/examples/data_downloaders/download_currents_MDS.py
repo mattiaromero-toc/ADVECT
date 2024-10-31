@@ -7,6 +7,9 @@ import xarray as xr
 from tqdm import tqdm
 import copernicusmarine as copernicusmarine
 
+from multiprocessing import Process, Queue
+from itertools import count
+
 COPERNICUS_USER = "ypham"  # "apeytavin"
 COPERNICUS_PASSWORD = "P7f6DR74iK4pW3f"  # "J2#?uQtHTxC_?an"
 
@@ -40,6 +43,25 @@ def download_ReproGeE_daily_surface_MDS(date: pd.Timestamp, var: str, destinatio
     username=username,password=password,
     force_download=True)#, overwrite_metadata_cache= True)
 
+def download_data_with_timeout(day, varname, raw_out_path):
+    retry_count = 0
+    counter = count(0)
+    max_retries = 5   
+    while retry_count < max_retries:
+        p = Process(target=download_ReproGeE_daily_surface_MDS, args=(day, varname, raw_out_path), name='Data download')
+        p.start()
+        p.join(timeout=60)
+        if p.is_alive():
+            print("Timed out, relaunching...")
+            p.terminate()
+            p.join()  # Ensure it is fully terminated
+            retry_count = next(counter)
+        else:
+            print("\nDownload completed successfully.\n")
+            break
+    if retry_count >= max_retries:
+        raise RuntimeError("Failed to complete download after max retries.")  
+    return None 
 
 def download_and_process_currents(out_dir: Path, tstart: str, tend: str):
     out_dir = Path(out_dir)
@@ -47,27 +69,31 @@ def download_and_process_currents(out_dir: Path, tstart: str, tend: str):
     raw_dir = out_dir / "raw"
     raw_dir.mkdir(exist_ok=True)
 
-    while True:
-        none_failed = True
-        for day in pd.date_range(tstart, tend, freq="D"):
-            for varname in ("uo", "vo"):
-                filename = f"{varname}_{day.strftime('%Y_%m_%d')}.nc"
+    for day in pd.date_range(tstart, tend, freq="D"):
+        for varname in ("uo", "vo"):
+            filename = f"{varname}_{day.strftime('%Y_%m_%d')}.nc"
+            raw_out_path = raw_dir / filename
 
-                # download the raw data
-                raw_out_path = raw_dir / filename
+            retry_count = 0
+            counter = count(0)
+            max_retries = 5   
+            while retry_count < max_retries:
+                if not raw_out_path.is_file():
+                    download_data_with_timeout(day, varname, raw_out_path)
+                try:
+                    xr.open_dataset(raw_out_path)
+                    print(f"\n{raw_out_path} passed the QC...\n")
+                    break
+                # except (OSError, ValueError, RuntimeError, KeyError):
+                except Exception as e:
+                    # file didn't download properly, delete and try again later
+                    print(f"{raw_out_path} is corrupted, re-downloading...")
+                    raw_out_path.unlink()
+                    retry_count = next(counter)
+                    continue
 
-                if raw_out_path.is_file():
-                    try:
-                        ds = xr.open_dataset(raw_out_path)
-                    except (OSError, ValueError, RuntimeError, KeyError):
-                        # file didn't download properly, delete and try again later
-                        none_failed = False
-                        raw_out_path.unlink()
-                        continue
-                else: 
-                    ds = download_ReproGeE_daily_surface_MDS(day,varname,raw_out_path)
+            if retry_count >= max_retries:
+                raise RuntimeError("Failed to load successfully after max retries.")  
+    return None
 
 
-        if none_failed:
-            print("All files downloaded.")
-            break

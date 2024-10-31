@@ -32,10 +32,11 @@ if __name__ == "__main__":
        # pth.mkdir()
 
     # download surface currents 
-    download_path = r"Y:\PROJECTS\TRAPs\ADVECTOR\inputs"
+    # download_path = r"Y:\PROJECTS\TRAPs\ADVECTOR\inputs"
+    download_path = Path("F:\ADVECTOR\metocean\GLOBCURRENT")
     download_and_process_currents(download_path, ADVECTION_START + timedelta(days=1), ADVECTION_END - timedelta(days=1))
-    GLOBCURRENT_U_PATH = r"Y:\PROJECTS\TRAPs\ADVECTOR\inputs\raw\uo_*"
-    GLOBCURRENT_V_PATH = r"Y:\PROJECTS\TRAPs\ADVECTOR\inputs\raw\vo_*"
+    GLOBCURRENT_U_PATH = download_path / "raw/uo_*" # r"Y:\PROJECTS\TRAPs\ADVECTOR\inputs\raw\uo_*"
+    GLOBCURRENT_V_PATH = download_path / "raw/vo_*" # r"Y:\PROJECTS\TRAPs\ADVECTOR\inputs\raw\vo_*"
 
     out_paths = run_advector_2D(
         output_directory=OUTPUTFILE_PATH,
