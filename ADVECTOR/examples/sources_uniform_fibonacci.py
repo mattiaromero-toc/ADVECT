@@ -104,6 +104,7 @@ if __name__ == "__main__":
     wesn = [wesn[i] if wesn[i] >= 0 else (wesn[i] + 360 if i < 2 else wesn[i]) for i in range(4)] # Convert in 0, 360 longitude
     n_particles = 1e6
     releasedate = "1993-01-01 00:00:00"
+    print(f"Release year: {releasedate[0:4]}")
 
     i = 0
     lons = np.array([])
@@ -125,7 +126,7 @@ if __name__ == "__main__":
 
     print(f"Number of unmasked particles in domain is: {lons_masked.shape[0]}")
     res_km = int(np.sqrt(size_domain/lons.shape[0]))
-    filename = f"T0-{res_km}km_NPO_RD1993_landmask"
+    filename = f"T0-{res_km}km_NPO_RD{releasedate[0:4]}_landmask"
 
     release_date = np.ones(lons_masked.shape[0])
     release_date = np.repeat(pd.to_datetime(releasedate, format="%Y-%m-%d %H:%M:%S"), lons_masked.shape[0])
