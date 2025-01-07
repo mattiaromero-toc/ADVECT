@@ -76,6 +76,8 @@ if __name__ == "__main__":
     longitudes_masked = longitudes[~globe_land_mask]
 
     # Plot on cartesian map and on 3D sphere
+    RootFig = RootOut / "figures"
+    RootFig.mkdir(parents=True, exist_ok=True)
     fig, axs = plt.subplots(1, 2, figsize=(12, 6))
     ax = axs[0]
     ax = plt.subplot(121, projection=ccrs.PlateCarree())
@@ -93,7 +95,7 @@ if __name__ == "__main__":
     ax.add_feature(cfeature.OCEAN)
     ax.gridlines()
     ax.set_title("3D sphere")
-    plt.savefig(RootOut / "fibonacci_sphere_uniform_release.png")
+    plt.savefig(RootFig / "fibonacci_sphere_uniform_release.png")
     plt.close()
 
 
@@ -148,7 +150,7 @@ if __name__ == "__main__":
     ax.add_feature(cfeature.OCEAN)
     sources_xr.plot.scatter(x="lon", y="lat", ax=ax, color='r', s=1)
     gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linestyle='--', alpha=0.5)
-    plt.savefig(path(f"/Volumes/storage4/ADVECTOR/sources/uniform/{filename}.png"))
+    plt.savefig(RootFig / f"{filename}.png")
     plt.close()
 
     print(f"Sources saved in {RootOut / filename}.nc")
