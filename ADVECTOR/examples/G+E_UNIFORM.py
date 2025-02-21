@@ -20,9 +20,8 @@ from pathlib import Path
 ADVECTION_START = datetime(1992, 12, 31)
 ADVECTION_END = datetime(2024, 1, 1)
 WINDAGE_COEFF = 0
-source_file_path = r"I:\ADVECTOR\sources\uniform\T0-8km_NPO_RD1993_landmask.nc"
-OUTPUTFILE_PATH = f"R:\PROJECTS\TRAPs\ADVECTOR\outputs"
-OUTPUTFILE_PATH = f"R:\PROJECTS\TRAPs\ADVECTOR\outputs\\advector_v1_2d_globcurrent_T0-8km_NPO_RD2020_landmask_1x_wind_{WINDAGE_COEFF}_{ADVECTION_START.year}_{ADVECTION_END.year}"
+source_file_path = f"Z:\ADVECTOR\sources\uniform\T0-8km_NPO_RD1993_landmask.nc" # storage4
+OUTPUTFILE_PATH = f"...\\advector_v1_2d_globcurrent_T0-8km_NPO_RD2020_landmask_1x_wind_{WINDAGE_COEFF}_{ADVECTION_START.year}_{ADVECTION_END.year}" 
 water_varname_map = {"uo": "U", "vo": "V", "longitude": "lon", "latitude": "lat"}
 
 if __name__ == "__main__":
@@ -32,11 +31,10 @@ if __name__ == "__main__":
        # pth.mkdir()
 
     # download surface currents 
-    # download_path = r"Y:\PROJECTS\TRAPs\ADVECTOR\inputs"
-    download_path = Path("F:\ADVECTOR\metocean\GLOBCURRENT")
+    download_path = Path("V:/metocean/GLOBCURRENT") # storageADVECTOR 
     # download_and_process_currents(download_path, ADVECTION_START + timedelta(days=1), ADVECTION_END - timedelta(days=1))
-    GLOBCURRENT_U_PATH = download_path / "raw/uo_*" # r"Y:\PROJECTS\TRAPs\ADVECTOR\inputs\raw\uo_*"
-    GLOBCURRENT_V_PATH = download_path / "raw/vo_*" # r"Y:\PROJECTS\TRAPs\ADVECTOR\inputs\raw\vo_*"
+    GLOBCURRENT_U_PATH = download_path / "raw/uo_*" 
+    GLOBCURRENT_V_PATH = download_path / "raw/vo_*" 
 
     out_paths = run_advector_2D(
         output_directory=OUTPUTFILE_PATH,
