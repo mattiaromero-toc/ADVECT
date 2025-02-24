@@ -18,7 +18,7 @@ def download_ReproGeE_daily_surface_MDS(date: pd.Timestamp, var: str, destinatio
     #  - an account at https://resources.marine.copernicus.eu/
     #  - the filename and folder of the output
 
-    dataset_id="cmems_obs_mob_glo_phy-cur_my_0.25deg_P1D-m"
+    dataset_id="cmems_obs-mob_glo_phy-cur_my_0.25deg_P1D-m"
     minimum_longitude = -179.875
     maximum_longitude = 179.875 
     minimum_latitude = -89.875
