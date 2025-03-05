@@ -57,7 +57,7 @@ class CopernicusDataDownloader:
         #     end_datetime = data_end_datetime
         #     print("Final date dataset:", end_datetime)
 
-        if not os.path.exists(f"{output_dir}/{dataset_id}.nc"):
+        if not os.path.exists(f"{output_dir}/{dataset_id}.nc") and self.confirm_download():
             copernicusmarine.subset(
                 username=self.config["username"], 
                 password=self.config["password"],
@@ -75,40 +75,40 @@ class CopernicusDataDownloader:
                 output_filename=dataset_id,
                 force_download=True
             )
+        elif os.path.exists(f"{output_dir}/{dataset_id}.nc"):
+            print("Already downloaded!")
+        else: 
+            print("Download cancelled.")
         
     def split_into_daily_files(self):
         """Splits downloaded dataset into daily files per variable."""
         dataset_path = Path(f'{self.config["output_directory"]}/{self.config["dataset_id"]}.nc')
         ds = xr.open_dataset(dataset_path)
-        for date in tqdm(ds.time.values):
-            date_str = np.datetime_as_string(date, unit="D").replace('-', '_')
-            for var in ds.data_vars:
-                daily_data = ds[var].sel(time=date)
-                file_name = f"{var}_{date_str}.nc"
-                file_path = os.path.join(self.config["output_directory"], file_name)
+        for var in ds.data_vars:
+            ds_var = ds[var]
+            for date, daily_data in tqdm(ds_var.groupby("time.date")):  
+                file_path = f"{self.config["output_directory"]}/{var}_{date.strftime('%Y_%m_%d')}.nc"
                 daily_data.to_netcdf(file_path)
-                try:
-                    xr.open_dataset(file_path)
-                except Exception as e:
-                    logging.warning(f"Corrupt file detected: {file_path} - {str(e)}")
-                    self.broken_files.append(file_path)
-                    os.remove(file_path)
-                    print(f"{file_path} is corrupted and will be reprocessed later.")
+
+            try:
+                xr.open_dataset(file_path)
+            except Exception as e:
+                logging.warning(f"Corrupt file detected: {file_path} - {str(e)}")
+                self.broken_files.append(file_path)
+                os.remove(file_path)
+                print(f"{file_path} is corrupted and will be reprocessed later.")
 
         os.remove(dataset_path)
         if self.broken_files:
             print("\nSome files were corrupted. Check warnings.log for details.")
 
     def run(self):
-        if not self.confirm_download():
-            print("Download cancelled.")
-            return
         self.download_CMT()
         self.split_into_daily_files()
         print("Processing complete!")
 
 if __name__ == "__main__":
-    # "C:\\Users\\toc2\\Projects\\GitHub\\ADVECT\\ADVECTOR\\examples\\data_downloaders\\glorys_config.json"
+    
     downloader = CopernicusDataDownloader()
     downloader.run()
 
