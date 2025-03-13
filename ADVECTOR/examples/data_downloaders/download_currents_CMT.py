@@ -17,9 +17,10 @@ def load_config():
         print("The entered path does not exist.")
         quit()
 
-class CopernicusDataDownloader:
+class DataDownloader:
     def __init__(self):
         self.config = load_config()
+        self.broken_files = []
     
     def confirm_download(self):
         print("\nDownload Configuration:")
@@ -32,10 +33,35 @@ class CopernicusDataDownloader:
     def setup_logging(self):
         """Sets up a warning log file."""
         logging.basicConfig(
-            filename=os.path.join(self.output_dir, "warnings.log"),
+            filename=os.path.join(self.config["output_directory"], "warnings.log"),
             level=logging.WARNING,
             format="%(asctime)s - %(levelname)s - %(message)s"
         )
+
+    def netCDF_qc(self, file_path):
+        """Load netCDF file and log issues."""
+        try:
+            xr.open_dataset(file_path)
+        except Exception as e:
+            logging.warning(f"Corrupt file detected: {file_path} - {str(e)}")
+            self.broken_files.append(file_path)
+            os.remove(file_path)
+            print(f"{file_path} is corrupted and will be reprocessed later.")
+
+    def run(self):
+        """Runs the complete workflow."""
+        if not self.confirm_download():
+            print("Download canceled.")
+            return quit()
+        
+        self.setup_logging()
+        print("Setup complete!")
+        
+class CopernicusDataDownloader:    
+    def __init__(self):
+        # Initialize DataDownloader and run its process
+        self.data_downloader = DataDownloader()
+        self.data_downloader.run()  # This will start the download process and logging
 
     def download_CMT(self) -> None:
         """
@@ -57,7 +83,7 @@ class CopernicusDataDownloader:
         #     end_datetime = data_end_datetime
         #     print("Final date dataset:", end_datetime)
 
-        if not os.path.exists(f"{output_dir}/{dataset_id}.nc") and self.confirm_download():
+        if not os.path.exists(f"{output_dir}/{dataset_id}.zarr") and self.confirm_download():
             copernicusmarine.subset(
                 username=self.config["username"], 
                 password=self.config["password"],
@@ -73,31 +99,32 @@ class CopernicusDataDownloader:
                 variables=self.config["variables"],
                 output_directory=output_dir,
                 output_filename=dataset_id,
-                force_download=True
+                file_format="zarr"
             )
-        elif os.path.exists(f"{output_dir}/{dataset_id}.nc"):
+        elif os.path.exists(f"{output_dir}/{dataset_id}.zarr"):
             print("Already downloaded!")
         else: 
             print("Download cancelled.")
         
     def split_into_daily_files(self):
-        """Splits downloaded dataset into daily files per variable."""
-        dataset_path = Path(f'{self.config["output_directory"]}/{self.config["dataset_id"]}.nc')
-        ds = xr.open_dataset(dataset_path)
+        """Splits downloaded .zarr dataset into daily files per variable."""
+
+        dataset_path = Path(f'{self.config["output_directory"]}/{self.config["dataset_id"]}.zarr')
+        if dataset_path.exists():
+            ds = xr.open_dataset(dataset_path, engine="zarr", chunks={})
+        else:
+            return print(f"Dataset not found at {dataset_path}")
+        
         for var in ds.data_vars:
             ds_var = ds[var]
             for date, daily_data in tqdm(ds_var.groupby("time.date")):  
                 file_path = f"{self.config["output_directory"]}/{var}_{date.strftime('%Y_%m_%d')}.nc"
-                daily_data.to_netcdf(file_path)
-
-            try:
-                xr.open_dataset(file_path)
-            except Exception as e:
-                logging.warning(f"Corrupt file detected: {file_path} - {str(e)}")
-                self.broken_files.append(file_path)
-                os.remove(file_path)
-                print(f"{file_path} is corrupted and will be reprocessed later.")
-
+                if not os.path.exists(file_path): 
+                    daily_data.to_netcdf(file_path)
+                self.data_downloader.netCDF_qc(self, file_path)
+        
+        ds.close()
+        print("Done with segmentation.")
         os.remove(dataset_path)
         if self.broken_files:
             print("\nSome files were corrupted. Check warnings.log for details.")
@@ -108,7 +135,7 @@ class CopernicusDataDownloader:
         print("Processing complete!")
 
 if __name__ == "__main__":
-    
+
     downloader = CopernicusDataDownloader()
     downloader.run()
 

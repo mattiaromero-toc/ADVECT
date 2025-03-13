@@ -8,5 +8,5 @@
     "latitude": {"min": -90, "max": 90},
     "depth": {"min": 0, "max": 0},
     "variables": ["uo", "vo"],
-    "output_directory": "V:/metocean/OMEGA3D/7D"
+    "output_directory": "V:/metocean/MULTIOBS_GLO_PHY_W_3D_REP_015_007/7D"
 }

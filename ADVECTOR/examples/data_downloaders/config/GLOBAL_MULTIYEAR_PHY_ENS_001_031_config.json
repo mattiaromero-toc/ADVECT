@@ -4,9 +4,9 @@
     "dataset_id": "cmems_mod_glo_phy-mnstd_my_0.25deg_P1D-m",
     "start_datetime": "2020-01-01T00:00:00",
     "end_datetime": "2024-01-01T00:00:00",
-    "longitude": {"min": -180, "max": 180},
-    "latitude": {"min": -90, "max": 90},
+    "longitude": {"min": -180, "max": -110},
+    "latitude": {"min": 10, "max": 50},
     "depth": {"min": 0, "max": 0},
     "variables": ["uo_mean", "vo_mean"],
-    "output_directory": "V:/metocean/CMEMS_Ensemble/1D"
+    "output_directory": "V:/metocean/GLOBAL_MULTIYEAR_PHY_ENS_001_031/1D"
 }

@@ -1,0 +1,8 @@
+{
+    "output_directory": "V:\\metocean\\ADVECTOR_Studies\\HYCOM\\1H",
+      "variables": ["ssu", "ssv"],
+      "start_datetime": "2020-01-01",
+      "end_datetime": "2025-01-01",
+      "wesn": [-180, -110, 10, 50]
+}
+  
