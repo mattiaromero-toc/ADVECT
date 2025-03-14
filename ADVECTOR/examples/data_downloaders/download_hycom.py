@@ -1,9 +1,10 @@
 import os 
 from enum import Enum
+import wget 
+import time as Time
 from urllib.request import urlretrieve
 from urllib.error import URLError
 import pandas as pd
-from os import path
 from pathlib import Path
 from socket import timeout
 from datetime import datetime
@@ -31,7 +32,7 @@ class HYCOMConfig():
             "expt_92.8": pd.date_range(start="2017-02-01", end="2017-05-31", freq="3h"),
             "expt_57.7": pd.date_range(start="2017-06-01", end="2017-09-30", freq="3h"),
             "expt_92.9": pd.date_range(start="2017-10-01", end="2017-12-31", freq="3h"),
-            "expt_93.0": pd.date_range(start="2018-01-01", end="2020-02-18", freq="3h"),
+            "expt_93.0": pd.date_range(start="2018-01-01", end="2024-08-10", freq="3h"), # "2020-02-18"
         },
 
         HYCOMExperiment.ESPCDV02: {
@@ -147,9 +148,9 @@ class HYCOMdownload:
                 filename = f'{var}_{time.strftime("%Y-%m-%d")}.nc'
                 target_file_path = Path(f"{output_dir}/{filename}")
 
-                if not path.exists(target_file_path):
+                if not Path.exists(target_file_path):
                     print(f"Downloading {filename}")
-                    # wget.download(url, str(target_file_path))
+                    print(url)
 
                     counter = 1
                     got_file = False
@@ -157,9 +158,10 @@ class HYCOMdownload:
                         print('  Attempting to get data, counter = ' + str(counter))
                         tt0 = datetime.now()
                         try:
-                            (a,b) = urlretrieve(url, str(target_file_path))
+                            # (a,b) = urlretrieve(url, str(target_file_path))
                             # a is the output file name
                             # b is a message you can see with b.as_string()
+                            wget.download(url, str(target_file_path))
                         except URLError as ee:
                             if hasattr(ee, 'reason'):
                                 print('  *We failed to reach a server.')
@@ -174,6 +176,7 @@ class HYCOMdownload:
                             print('  Downloaded data')
                         print('  Time elapsed: %0.1f seconds' % (datetime.now() - tt0).total_seconds())
                         counter += 1
+                        Time.sleep(60)
                 else:
                     print(f"Skipping {filename}, already exists")
                 
