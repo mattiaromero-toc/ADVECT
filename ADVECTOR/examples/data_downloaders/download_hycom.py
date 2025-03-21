@@ -116,16 +116,16 @@ class HYCOMdownload:
         wesn[1] = HYCOMdownload.adjust_longitude(wesn[1], convention)
 
         params = (
-            f"uv3z/{time.year}?var={var}&north={wesn[3]}&south={wesn[2]}&west={wesn[0]}&east={wesn[1]}"
+            f"{time.year}?var={var}&north={wesn[3]}&south={wesn[2]}&west={wesn[0]}&east={wesn[1]}"
             "&disableProjSubset=on&horizStride=1"
-            f"&time_start={time.strftime('%Y-%m-%dT%H')}%3A00%3A00Z&time_end={(time + pd.Timedelta('1D') - pd.Timedelta('1s')).strftime('%Y-%m-%dT%H')}&timeStride=1&vertCoord=0&accept=netcdf4"
+            f"&time_start={time.strftime('%Y-%m-%dT%H')}%3A00%3A00Z&time_end={(time + pd.Timedelta('1D') - pd.Timedelta('1s')).strftime('%Y-%m-%dT%H')}&timeStride=1&vertCoord=0&accept=netcdf"
         ) # 2D 
         
         if experiment in [HYCOMExperiment.GLBy]: # HYCOMExperiment.GLBu, HYCOMExperiment.GLBv
-            return f"{base_url}/{experiment.name}0.08/{sub_experiment}/{params}"
+            return f"{base_url}/{experiment.value}0.08/{sub_experiment}/uv3z/{params}"
                     
-        elif experiment == HYCOMExperiment.ESPC:
-            return f"{base_url}/{experiment.name}/{params}"
+        elif experiment == HYCOMExperiment.ESPCDV02:
+            return f"{base_url}/{experiment.value}/{var.split('_')[-1]}3z/{params}"
 
     def download(self) -> None:
 
@@ -174,9 +174,10 @@ class HYCOMdownload:
                         else:
                             got_file = True
                             print('  Downloaded data')
+                        if (counter > 1) and (got_file == False): # avoid freezing 
+                            Time.sleep(60)
                         print('  Time elapsed: %0.1f seconds' % (datetime.now() - tt0).total_seconds())
                         counter += 1
-                        Time.sleep(60)
                 else:
                     print(f"Skipping {filename}, already exists")
                 
