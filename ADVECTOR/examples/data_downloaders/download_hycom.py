@@ -1,3 +1,5 @@
+# FIXME: introduce additional QC step that checks if len(time dim) == tres (no missing tsteps)
+
 import os 
 from enum import Enum
 import wget 

@@ -1,8 +1,7 @@
 {
-    "output_directory": "V:\\metocean\\ADVECTOR_Studies\\HYCOM\\3H",
-      "variables": ["water_u", "water_v"],
-      "start_datetime": "2024-08-01",
-      "end_datetime": "2025-01-01",
-      "wesn": [-180, -110, 10, 50]
+  "output_directory": "V:\\metocean\\ADVECTOR_Studies\\HYCOM\\3H",
+    "variables": ["water_u", "water_v"],
+    "start_datetime": "2024-08-01",
+    "end_datetime": "2025-01-01",
+    "wesn": [-180, -110, 10, 50]
 }
-  
